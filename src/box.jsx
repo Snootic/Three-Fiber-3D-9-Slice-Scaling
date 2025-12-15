@@ -2,12 +2,13 @@ import { forwardRef, useRef, useState } from "react";
 import { Arrow } from "./arrow";
 import { Vector3 } from "three";
 import { RoundedBox } from "@react-three/drei"
+import { TSSliceScaling } from "./scaling";
 
 
 export const Box = forwardRef((props, ref) => {
   const [active, setActive] = useState(false)
-  const [scale, setScale] = useState([1, 1, 1]);
-  
+  const scale = [1,1,1]
+
   const arrowRefs = useRef(null);
   
   if (!arrowRefs.current) {
@@ -52,22 +53,21 @@ export const Box = forwardRef((props, ref) => {
     newScale[axis] += delta;
     
     if (newScale[axis] < 0.1) newScale[axis] = 0.1;
-    
-    setScale(newScale);
+
+    TSSliceScaling(newScale, ref)
   };
 
   return (
     <group ref={ref} {...props}>
       <RoundedBox
         args={[1, 1, 1]}
-        scale={scale}
         radius={0.1}
         smoothness={4}
         onClick={(e) => {e.stopPropagation(); setActive((prev) => !prev)}}
         receiveShadow={true}
         castShadow={true}
       >
-      <meshStandardMaterial color={active ? 'orange' : 'blue'} />
+        <meshStandardMaterial color={active ? 'orange' : 'blue'} />
       </RoundedBox>
       
       <group visible={active}>

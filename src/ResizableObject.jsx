@@ -77,7 +77,7 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
     
     if (newScale[axis] < 0.1) newScale[axis] = 0.1;
 
-    ref.current.scale.set(...newScale)
+    TSSliceScaling(newScale, ref)
   };
 
   return (
