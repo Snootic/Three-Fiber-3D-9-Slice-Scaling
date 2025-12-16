@@ -10,7 +10,7 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
   const obj = useLoader(OBJLoader, url);
 
   const inactiveMaterial = useMemo(() => new MeshStandardMaterial({ color: 'yellow' }), []);
-  const activeMaterial = useMemo(() => new MeshStandardMaterial({ color: 'purple' }), []);
+  const activeMaterial = useMemo(() => new MeshStandardMaterial({ color: 'pink' }), []);
 
   useEffect(() => {
     const material = active ? activeMaterial : inactiveMaterial;
@@ -21,7 +21,7 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
     });
   }, [obj, active, activeMaterial, inactiveMaterial]);
 
-  obj.scale.set(0.1,0.1,0.1)
+  let meshCount = 0;
 
   const { initialSize, initialCenter } = useMemo(() => {
     const box = new Box3().setFromObject(obj);
@@ -39,13 +39,13 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
 
   const arrowNames = ['x-positive', 'x-negative', 'z-positive', 'z-negative', 'y-positive'];
   
-  const arrowY = initialSize.y / 2 + 0.15;
+  const arrowY = initialCenter.y / 4;
   
   const arrowPositions = [
-    [ initialSize.x / 2, arrowY,  0],
-    [-initialSize.x / 2, arrowY,  0],
-    [0, arrowY, -initialSize.z / 2],
-    [0, arrowY, initialSize.z / 2],
+    [ initialCenter.x / 2, arrowY,  0],
+    [-initialCenter.x / 2, arrowY,  0],
+    [0, arrowY, -initialCenter.z / 2],
+    [0, arrowY, initialCenter.z / 2],
     [0, arrowY, 0],
   ];
   
@@ -67,18 +67,38 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
 
   const handleDrag = (index, delta) => {
     if (!ref.current) return;
-    const newScale = ref.current.scale.clone();
     let axis = 0;
     if (index === 0 || index === 1) axis = 'x';
     else if (index === 4) axis = 'y';
     else axis = 'z';
 
-    newScale[axis] += delta;
-    
-    if (newScale[axis] < 0.1) newScale[axis] = 0.1;
-
-    TSSliceScaling(newScale, ref)
+    ref.current.children[0].traverse((child) => {
+      if (child.isMesh) {
+        TSSliceScaling(axis, delta, child)
+      }
+    })
   };
+
+  useEffect(() => {
+    obj.scale.set(0.1,0.1,0.1)
+    obj.position.set(0,0,0)
+
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        
+        if (!child.geometry.boundingBox) child.geometry.computeBoundingBox()
+        const box = child.geometry.boundingBox
+        const originalSize = new Vector3()
+        box.getSize(originalSize)
+        
+        child.userData.originalSize = originalSize 
+
+        meshCount++;
+      }
+    });
+  }, [])
 
   return (
     <group ref={ref} {...props}>

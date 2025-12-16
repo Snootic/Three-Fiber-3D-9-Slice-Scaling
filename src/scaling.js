@@ -1,25 +1,23 @@
 import { Vector3 } from "three"
 
-export function TSSliceScaling(newScale, objectRef) {
-  const mesh = objectRef.current.children[0]
-  
-  //TODO: if mesh has children, also resize children geometries
-  // If mesh has no geometry, search the next children that has
-  // if (!mesh.geometry) {
-    
-  // }
+export function TSSliceScaling(direction, delta, mesh) {
+  if (!mesh.geometry) return
 
   const geometry = mesh.geometry
   const attributesPosition = geometry.attributes.position
   const totalVertexCount = attributesPosition.count
-  const baseSize = 1
+  const baseSize = getGeometryBaseSize(geometry)
+  const margins = calculateMargins(baseSize)
 
-  // the corner radius (0.1) + 0.5
-  const margins = { 
-    x: 0.15,
-    y: 0.15,
-    z: 0.15
-  }
+  const originalSize = mesh.userData.originalSize
+  
+  const newSize = new Vector3(
+    originalSize.x,
+    originalSize.y,
+    originalSize.z
+  )
+
+  newSize[direction] += delta
 
   const originalPositions = new Float32Array(attributesPosition.array)
 
@@ -35,29 +33,29 @@ export function TSSliceScaling(newScale, objectRef) {
     let [newX, newY, newZ] = originalVertexPos
 
     if (vertexRegion.x === -1) {
-      newX = originalVertexPos[0] * (baseSize / baseSize) - (newScale[0] - baseSize) / 2;
+      newX = originalVertexPos[0] * (baseSize.x / baseSize.x) - (newSize.x - baseSize.x) / 2;
     } else if (vertexRegion.x === 1) {
-      newX = originalVertexPos[0] * (baseSize / baseSize) + (newScale[0] - baseSize) / 2;
+      newX = originalVertexPos[0] * (baseSize.x / baseSize.x) + (newSize.x - baseSize.x) / 2;
     } else {
-      const centerScaleX = (newScale[0] - 2 * margins.x) / (baseSize - 2 * margins.x);
+      const centerScaleX = (newSize.x - 2 * margins.x) / (baseSize.x - 2 * margins.x);
       newX = originalVertexPos[0] * centerScaleX;
     }
     
     if (vertexRegion.y === -1) {
-      newY = originalVertexPos[1] - (newScale[1] - baseSize) / 2;
+      newY = originalVertexPos[1] - (newSize.y - baseSize.y) / 2;
     } else if (vertexRegion.y === 1) {
-      newY = originalVertexPos[1] + (newScale[1] - baseSize) / 2;
+      newY = originalVertexPos[1] + (newSize.y - baseSize.y) / 2;
     } else {
-      const centerScaleY = (newScale[1] - 2 * margins.y) / (baseSize - 2 * margins.y);
+      const centerScaleY = (newSize.y - 2 * margins.y) / (baseSize.y - 2 * margins.y);
       newY = originalVertexPos[1] * centerScaleY;
     }
     
     if (vertexRegion.z === -1) {
-      newZ = originalVertexPos[2] - (newScale[2] - baseSize) / 2;
+      newZ = originalVertexPos[2] - (newSize.z - baseSize.z) / 2;
     } else if (vertexRegion.z === 1) {
-      newZ = originalVertexPos[2] + (newScale[2] - baseSize) / 2;
+      newZ = originalVertexPos[2] + (newSize.z - baseSize.z) / 2;
     } else {
-      const centerScaleZ = (newScale[2] - 2 * margins.z) / (baseSize - 2 * margins.z);
+      const centerScaleZ = (newSize.z - 2 * margins.z) / (baseSize.z - 2 * margins.z);
       newZ = originalVertexPos[2] * centerScaleZ;
     }
     
@@ -68,8 +66,6 @@ export function TSSliceScaling(newScale, objectRef) {
 
   attributesPosition.needsUpdate = true
   geometry.computeVertexNormals()
-
-  console.log(geometry)
 }
 
 function classifyVertexRegion(vertexPositions, margins) {
@@ -87,4 +83,24 @@ function classifyVertexRegion(vertexPositions, margins) {
   let region = new Vector3(x,y,z)
 
   return region
+}
+
+function getGeometryBaseSize(geometry) {
+  if (!geometry.boundingBox) geometry.computeBoundingBox()
+  
+  const bbox = geometry.boundingBox
+  
+  return {
+    x: bbox.max.x - bbox.min.x,
+    y: bbox.max.y - bbox.min.y,
+    z: bbox.max.z - bbox.min.z
+  }
+}
+
+function calculateMargins(baseSize, percentage = 0.15) {
+  return {
+    x: baseSize.x * percentage,
+    y: baseSize.y * percentage,
+    z: baseSize.z * percentage
+  }
 }

@@ -8,6 +8,7 @@ import { TSSliceScaling } from "./scaling";
 export const Box = forwardRef((props, ref) => {
   const [active, setActive] = useState(false)
   const scale = [1,1,1]
+  const size = new Vector3().fromArray([2,1,3])
 
   const arrowRefs = useRef(null);
   
@@ -44,28 +45,29 @@ export const Box = forwardRef((props, ref) => {
   ];
 
   const handleDrag = (index, delta) => {
-    const newScale = [...scale];
+    if (!ref.current) return;
     let axis = 0;
-    if (index === 0 || index === 1) axis = 0;
-    else if (index === 4) axis = 1;
-    else axis = 2;
-    
-    newScale[axis] += delta;
-    
-    if (newScale[axis] < 0.1) newScale[axis] = 0.1;
+    if (index === 0 || index === 1) axis = 'x';
+    else if (index === 4) axis = 'y';
+    else axis = 'z';
 
-    TSSliceScaling(newScale, ref)
+    ref.current.children[0].traverse((child) => {
+      if (child.isMesh) {
+        TSSliceScaling(axis, delta, child)
+      }
+    })
   };
 
   return (
     <group ref={ref} {...props}>
       <RoundedBox
-        args={[1, 1, 1]}
+        args={size}
         radius={0.1}
         smoothness={4}
         onClick={(e) => {e.stopPropagation(); setActive((prev) => !prev)}}
         receiveShadow={true}
         castShadow={true}
+        userData={{originalSize: size}}
       >
         <meshStandardMaterial color={active ? 'orange' : 'blue'} />
       </RoundedBox>
