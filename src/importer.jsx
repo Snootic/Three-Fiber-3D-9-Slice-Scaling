@@ -33,7 +33,7 @@ export function Importer({ onFileLoaded }) {
   };
 
   return (
-    <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 1 }}>
+    <div style={{ position: 'absolute', top: '50px', left: '20px', zIndex: 1 }}>
       <button onClick={handleButtonClick}>Import OBJ</button>
       <input
         type="file"
