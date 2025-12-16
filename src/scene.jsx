@@ -19,7 +19,7 @@ export function MainScene() {
     <>
       <ambientLight intensity={1} />
         <directionalLight 
-          position={[5, 5, 5]} 
+          position={[5, 5, 20]} 
           intensity={1} 
           castShadow 
           shadow-mapSize-width={512}
@@ -30,7 +30,7 @@ export function MainScene() {
           shadow-camera-top={10}
           shadow-camera-bottom={-10}
         />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.51, 0]} receiveShadow>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
           <planeGeometry args={[100, 100]} />
           <meshStandardMaterial color="#e0e0e0" />
         </mesh>

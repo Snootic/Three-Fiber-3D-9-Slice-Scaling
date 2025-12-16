@@ -4,13 +4,15 @@ import { Vector3, Box3, MeshStandardMaterial } from "three";
 import { TSSliceScaling } from "./scaling";
 import { useLoader } from "@react-three/fiber";
 import { OBJLoader } from "three-stdlib";
+import { useStore } from "./store";
 
 export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref) => {
   const [active, setActive] = useState(false);
   const obj = useLoader(OBJLoader, url);
+  const scale = useStore((state) => state.scale);
 
-  const inactiveMaterial = useMemo(() => new MeshStandardMaterial({ color: 'yellow' }), []);
-  const activeMaterial = useMemo(() => new MeshStandardMaterial({ color: 'pink' }), []);
+  const inactiveMaterial = useMemo(() => new MeshStandardMaterial({ color: 'white', vertexColors: true }), []);
+  const activeMaterial = useMemo(() => new MeshStandardMaterial({ color: 'white', vertexColors: true }), []);
 
   useEffect(() => {
     const material = active ? activeMaterial : inactiveMaterial;
@@ -30,7 +32,7 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
     const initialCenter = new Vector3();
     box.getCenter(initialCenter);
     return { initialSize, initialCenter };
-  }, [obj]);
+  }, [obj, scale]);
 
   const arrowRefs = useRef(null);
   if (!arrowRefs.current) {
@@ -39,7 +41,7 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
 
   const arrowNames = ['x-positive', 'x-negative', 'z-positive', 'z-negative', 'y-positive'];
   
-  const arrowY = initialCenter.y / 4;
+  const arrowY = useMemo(() => {return initialCenter.y / 4},[initialCenter.y]);
   
   const arrowPositions = [
     [ initialCenter.x / 2, arrowY,  0],
@@ -80,7 +82,7 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
   };
 
   useEffect(() => {
-    obj.scale.set(0.1,0.1,0.1)
+    obj.scale.set(scale, scale, scale)
     obj.position.set(0,0,0)
 
     obj.traverse((child) => {
@@ -93,12 +95,19 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
         const originalSize = new Vector3()
         box.getSize(originalSize)
         
-        child.userData.originalSize = originalSize 
+        child.userData.originalSize = originalSize
+        if (!child.userData.currentSize) {
+          child.userData.currentSize = new Vector3(
+            originalSize.x,
+            originalSize.y,
+            originalSize.z
+          )
+        }
 
         meshCount++;
       }
     });
-  }, [])
+  }, [scale])
 
   return (
     <group ref={ref} {...props}>

@@ -67,9 +67,9 @@ export const Box = forwardRef((props, ref) => {
         onClick={(e) => {e.stopPropagation(); setActive((prev) => !prev)}}
         receiveShadow={true}
         castShadow={true}
-        userData={{originalSize: size}}
+        userData={{originalSize: size, currentSize: size}}
       >
-        <meshStandardMaterial color={active ? 'orange' : 'blue'} />
+        <meshStandardMaterial color={active ? 'white' : 'white'} vertexColors={true} />
       </RoundedBox>
       
       <group visible={active}>
