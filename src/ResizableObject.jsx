@@ -13,8 +13,8 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
   const obj = useLoader(OBJLoader, url);
   const scale = useStore((state) => state.scale);
 
-  const inactiveMaterial = useMemo(() => new MeshStandardMaterial({ color: 'white', vertexColors: true }), []);
-  const activeMaterial = useMemo(() => new MeshStandardMaterial({ color: 'white', vertexColors: true }), []);
+  const inactiveMaterial = useMemo(() => new MeshStandardMaterial({ color: 'white' }), []);
+  const activeMaterial = useMemo(() => new MeshStandardMaterial({ color: 'blue'}), []);
 
   useEffect(() => {
     const material = active ? activeMaterial : inactiveMaterial;
@@ -25,12 +25,14 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
     });
   }, [obj, active, activeMaterial, inactiveMaterial]);
 
-  const initialCenter = useMemo(() => {
+  const {defaultSize, initialCenter} = useMemo(() => {
     const box = new Box3().setFromObject(obj);
+    const defaultSize = new Vector3()
+    box.getSize(defaultSize)
     const initialCenter = new Vector3();
     box.getCenter(initialCenter);
-    return initialCenter;
-  }, [obj]);
+    return {defaultSize, initialCenter};
+  }, [obj, scale]);
 
   const arrowRefs = useRef(null);
   if (!arrowRefs.current) {
@@ -39,13 +41,13 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
 
   const arrowNames = ['x-positive', 'x-negative', 'z-positive', 'z-negative', 'y-positive'];
   
-  const arrowY = useMemo(() => {return initialCenter.y / 4},[initialCenter.y]);
+  const arrowY = useMemo(() => {return defaultSize.y},[defaultSize.y]);
   
   const arrowPositions = [
-    [ initialCenter.x / 2, arrowY,  0],
-    [-initialCenter.x / 2, arrowY,  0],
-    [0, arrowY, -initialCenter.z / 2],
-    [0, arrowY, initialCenter.z / 2],
+    [ defaultSize.x / 2, arrowY,  0],
+    [-defaultSize.x / 2, arrowY,  0],
+    [0, arrowY, -defaultSize.z / 2],
+    [0, arrowY, defaultSize.z / 2],
     [0, arrowY, 0],
   ];
   
@@ -68,13 +70,33 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
   const handleDrag = (index, delta) => {
     if (!ref.current) return;
     let axis = 0;
-    if (index === 0 || index === 1) axis = 'x';
-    else if (index === 4) axis = 'y';
-    else axis = 'z';
+    let direction = 1;
+    switch (index) {
+      case 0:
+        axis = 'x';
+        direction = 1;
+        break;
+      case 1:
+        axis = 'x';
+        direction = -1;
+        break;
+      case 2:
+        axis = 'z';
+        direction = -1;
+        break;
+      case 3:
+        axis = 'z';
+        direction = 1;
+        break;
+      case 4:
+        axis = 'y';
+        direction = 1;
+        break;
+    }
 
     ref.current.children[0].traverse((child) => {
       if (child.isMesh) {
-        TSSliceScaling(axis, delta, child)
+        TSSliceScaling(direction, axis, delta, child)
       }
     })
   };
@@ -112,12 +134,6 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
           const colors = new Float32Array(child.geometry.attributes.position.count * 3)
           child.geometry.setAttribute('color', new BufferAttribute(colors, 3))
         }
-
-        const colorAttribute = child.geometry.attributes.color
-        for (let i = 0; i < colorAttribute.count; i++) {
-          colorAttribute.setXYZ(i, 1, 1, 1)
-        }
-        colorAttribute.needsUpdate = true
 
         meshCount++;
       }

@@ -9,7 +9,8 @@ import { Slider } from './Slider';
 function App() {
   const [objectUrls, setObjectUrls] = useState([
     '/box.obj',
-    '/larger_box.obj'
+    '/larger_box.obj',
+    '/trapeze.obj'
   ]);
 
   const handleFileLoaded = (url) => {

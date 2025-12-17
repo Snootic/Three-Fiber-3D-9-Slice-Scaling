@@ -1,7 +1,10 @@
 import { Vector3 } from "three"
 
-export function TSSliceScaling(direction, delta, mesh) {
+export function TSSliceScaling(direction, axis, delta, mesh) {
   if (!mesh.geometry) return
+
+  // TODO RESIZE ONLY THE DIRECTION IT WAS PULLED
+  // IF THE X-POSITIVE ARROW IS PULLED, THEN RESIZE ONLY THE OBJECT HALF ON X POSITIVE
 
   const geometry = mesh.geometry
   const attributesPosition = geometry.attributes.position
@@ -9,11 +12,10 @@ export function TSSliceScaling(direction, delta, mesh) {
   const baseSize = getGeometryBaseSize(geometry)
   const margins = calculateMargins(baseSize)
 
-  mesh.userData.currentSize[direction] += delta
+  mesh.userData.currentSize[axis] += delta
 
   const newSize = mesh.userData.currentSize
   const originalPositions = mesh.userData.originalPositions
-  const colorAttribute = geometry.attributes.color
   const bbox = geometry.boundingBox
 
   for (let i = 0; i < totalVertexCount; i++) {
@@ -57,15 +59,9 @@ export function TSSliceScaling(direction, delta, mesh) {
     attributesPosition.array[idx] = newX
     attributesPosition.array[idx + 1] = newY
     attributesPosition.array[idx + 2] = newZ 
-
-    const color = getRegionColor(vertexRegion)
-    colorAttribute.array[idx] = color.r
-    colorAttribute.array[idx + 1] = color.g
-    colorAttribute.array[idx + 2] = color.b
   }
 
   attributesPosition.needsUpdate = true
-  colorAttribute.needsUpdate = true
   geometry.computeVertexNormals()
 }
 
@@ -114,22 +110,5 @@ function calculateMargins(baseSize) {
     x: baseSize.x / 2,
     y: baseSize.y / 2,
     z: baseSize.z / 2,
-  }
-}
-
-function getRegionColor(region) {
-  if (Math.abs(region.x) === 1 && Math.abs(region.y) === 1 && Math.abs(region.z) === 1) {
-    return { r: 1, g: 0, b: 0 } // Red for corners
-  }
-  else if ((Math.abs(region.x) === 1 && Math.abs(region.y) === 1) ||
-           (Math.abs(region.x) === 1 && Math.abs(region.z) === 1) ||
-           (Math.abs(region.y) === 1 && Math.abs(region.z) === 1)) {
-    return { r: 0, g: 1, b: 0 } // Green for edges
-  }
-  else if (Math.abs(region.x) === 1 || Math.abs(region.y) === 1 || Math.abs(region.z) === 1) {
-    return { r: 0, g: 0, b: 1 } // Blue for faces
-  }
-  else {
-    return { r: 1, g: 1, b: 0 } // Yellow for center
   }
 }
