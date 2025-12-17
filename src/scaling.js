@@ -1,4 +1,5 @@
-import { Vector3, BufferAttribute } from "three"
+import { Vector3 } from "three"
+import { useStore } from "./store"  
 
 export function TSSliceScaling(direction, delta, mesh) {
   if (!mesh.geometry) return
@@ -7,16 +8,8 @@ export function TSSliceScaling(direction, delta, mesh) {
   const attributesPosition = geometry.attributes.position
   const totalVertexCount = attributesPosition.count
   const baseSize = getGeometryBaseSize(geometry)
-  const margins = calculateMargins(baseSize)
-
-  if (!mesh.userData.originalPositions) {
-    mesh.userData.originalPositions = new Float32Array(attributesPosition.array)
-  }
-
-  if (!geometry.attributes.color) {
-    const colors = new Float32Array(totalVertexCount * 3)
-    geometry.setAttribute('color', new BufferAttribute(colors, 3))
-  }
+  const marginPercentage = useStore.getState().marginPercentage
+  const margins = calculateMargins(baseSize, marginPercentage)
 
   mesh.userData.currentSize[direction] += delta
 

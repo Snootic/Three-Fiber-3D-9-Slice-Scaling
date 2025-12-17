@@ -5,6 +5,7 @@ import { TSSliceScaling } from "./scaling";
 import { useLoader } from "@react-three/fiber";
 import { OBJLoader } from "three-stdlib";
 import { useStore } from "./store";
+import { BufferAttribute } from "three"
 
 export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref) => {
   const [active, setActive] = useState(false);
@@ -103,6 +104,22 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
             originalSize.z
           )
         }
+
+        if (!child.userData.originalPositions) {
+          const attributesPosition = child.geometry.attributes.position
+          child.userData.originalPositions = new Float32Array(attributesPosition.array)
+        }
+
+        if (!child.geometry.attributes.color) {
+          const colors = new Float32Array(child.geometry.attributes.position.count * 3)
+          child.geometry.setAttribute('color', new BufferAttribute(colors, 3))
+        }
+
+        const colorAttribute = child.geometry.attributes.color
+        for (let i = 0; i < colorAttribute.count; i++) {
+          colorAttribute.setXYZ(i, 1, 1, 1)
+        }
+        colorAttribute.needsUpdate = true
 
         meshCount++;
       }
