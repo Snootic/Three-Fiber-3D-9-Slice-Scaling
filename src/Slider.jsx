@@ -2,8 +2,13 @@ import React from 'react';
 import { useStore } from './store';
 
 export const Slider = () => {
-  const scale = useStore((state) => state.scale);
-  const setScale = useStore((state) => state.setScale);
+  const activeObjectId = useStore((state) => state.activeObjectId);
+  const objectScales = useStore((state) => state.objectScales);
+  const setObjectScale = useStore((state) => state.setObjectScale);
+
+  if (activeObjectId === null) return null;
+
+  const scale = objectScales[activeObjectId] || 1;
 
   return (
     <div style={{ position: 'absolute', top: '120px', left: '20px', zIndex: 1, background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}>
@@ -16,10 +21,10 @@ export const Slider = () => {
           id="scale"
           name="scale"
           min="0.001"
-          max="0.5"
+          max="1"
           step="0.01"
           value={scale}
-          onChange={(e) => setScale(parseFloat(e.target.value))}
+          onChange={(e) => setObjectScale(activeObjectId, parseFloat(e.target.value))}
         />
       </div>
     </div>

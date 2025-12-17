@@ -8,13 +8,22 @@ import { useStore } from "./store";
 import { BufferAttribute } from "three"
 import { useHotkeys } from 'react-hotkeys-hook'
 
-export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref) => {
+export const ResizableObject = forwardRef(({ url, objectId, onDragChange, ...props }, ref) => {
   const [active, setActive] = useState(false);
   const obj = useLoader(OBJLoader, url);
-  const scale = useStore((state) => state.scale);
+  
+  const activeObjectId = useStore((state) => state.activeObjectId);
+  const setActiveObjectId = useStore((state) => state.setActiveObjectId);
+  const objectScales = useStore((state) => state.objectScales);
+  const scale = objectScales[objectId] || 1;
 
   const inactiveMaterial = useMemo(() => new MeshStandardMaterial({ color: 'white' }), []);
   const activeMaterial = useMemo(() => new MeshStandardMaterial({ color: 'blue'}), []);
+
+  useEffect(() => {
+    const isActive = activeObjectId === objectId;
+    setActive(isActive);
+  }, [activeObjectId, objectId]);
 
   useEffect(() => {
     const material = active ? activeMaterial : inactiveMaterial;
@@ -165,11 +174,16 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
     }
   }, [active])
 
+  const handleClick = (e) => {
+    e.stopPropagation();
+    setActiveObjectId(active ? null : objectId);
+  };
+
   return (
     <group ref={ref} {...props}>
       <primitive 
         object={obj} 
-        onClick={(e) => {e.stopPropagation(); setActive((prev) => !prev)}}
+        onClick={handleClick}
         position={[-initialCenter.x, -initialCenter.y, -initialCenter.z]}
       />
       
