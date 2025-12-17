@@ -7,7 +7,10 @@ import { Importer, LoadedObjects } from './importer';
 import { Slider } from './Slider';
 
 function App() {
-  const [objectUrls, setObjectUrls] = useState([]);
+  const [objectUrls, setObjectUrls] = useState([
+    '/box.obj',
+    '/larger_box.obj'
+  ]);
 
   const handleFileLoaded = (url) => {
     setObjectUrls(prev => [...prev, url]);
