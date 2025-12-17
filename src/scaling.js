@@ -1,5 +1,4 @@
 import { Vector3 } from "three"
-import { useStore } from "./store"  
 
 export function TSSliceScaling(direction, delta, mesh) {
   if (!mesh.geometry) return
@@ -8,8 +7,7 @@ export function TSSliceScaling(direction, delta, mesh) {
   const attributesPosition = geometry.attributes.position
   const totalVertexCount = attributesPosition.count
   const baseSize = getGeometryBaseSize(geometry)
-  const marginPercentage = useStore.getState().marginPercentage
-  const margins = calculateMargins(baseSize, marginPercentage)
+  const margins = calculateMargins(baseSize)
 
   mesh.userData.currentSize[direction] += delta
 
@@ -111,11 +109,11 @@ function getGeometryBaseSize(geometry) {
   }
 }
 
-function calculateMargins(baseSize, percentage = 0.05) {
+function calculateMargins(baseSize) {
   return {
-    x: baseSize.x * percentage,
-    y: baseSize.y * percentage,
-    z: baseSize.z * percentage
+    x: baseSize.x / 2,
+    y: baseSize.y / 2,
+    z: baseSize.z / 2,
   }
 }
 
