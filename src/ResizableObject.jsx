@@ -6,6 +6,7 @@ import { useLoader } from "@react-three/fiber";
 import { OBJLoader } from "three-stdlib";
 import { useStore } from "./store";
 import { BufferAttribute } from "three"
+import { useHotkeys } from 'react-hotkeys-hook'
 
 export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref) => {
   const [active, setActive] = useState(false);
@@ -24,16 +25,12 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
     });
   }, [obj, active, activeMaterial, inactiveMaterial]);
 
-  let meshCount = 0;
-
-  const { initialSize, initialCenter } = useMemo(() => {
+  const initialCenter = useMemo(() => {
     const box = new Box3().setFromObject(obj);
-    const initialSize = new Vector3();
-    box.getSize(initialSize);
     const initialCenter = new Vector3();
     box.getCenter(initialCenter);
-    return { initialSize, initialCenter };
-  }, [obj, scale]);
+    return initialCenter;
+  }, [obj]);
 
   const arrowRefs = useRef(null);
   if (!arrowRefs.current) {
@@ -85,7 +82,8 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
   useEffect(() => {
     obj.scale.set(scale, scale, scale)
     obj.position.set(0,0,0)
-
+    
+    let meshCount = 0
     obj.traverse((child) => {
       if (child.isMesh) {
         child.castShadow = true;
@@ -124,7 +122,32 @@ export const ResizableObject = forwardRef(({ url, onDragChange, ...props }, ref)
         meshCount++;
       }
     });
-  }, [scale])
+  }, [obj, scale])
+
+  useHotkeys('left', () => {
+    if (active && ref.current) {
+      ref.current.position.x -= 0.1
+    }
+  }, [active])
+
+  useHotkeys('right', () => {
+    if (active && ref.current) {
+      ref.current.position.x += 0.1
+    }
+  }, [active])
+
+
+  useHotkeys('up', () => {
+    if (active && ref.current) {
+      ref.current.position.z += 0.1
+    }
+  }, [active])
+  
+  useHotkeys('down', () => {
+    if (active && ref.current) {
+      ref.current.position.z -= 0.1
+    }
+  }, [active])
 
   return (
     <group ref={ref} {...props}>

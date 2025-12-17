@@ -1,16 +1,17 @@
-import { useRef, Suspense, useState } from 'react';
+import { useRef, Suspense, useMemo } from 'react';
 import { ResizableObject } from './ResizableObject';
 import { useStore } from './store';
 
 
 export function LoadedObjects({ urls }) {
   const setIsDraggingArrow = useStore((state) => state.setIsDraggingArrow);
-  const loadedObjectRef = useRef();
+  const refs = useMemo(() => urls.map(() => ({ current: null })), [urls]);
+  
   return (
     <>
       {urls.map((url, index) => (
         <Suspense key={index} fallback={null}>
-          <ResizableObject url={url} ref={loadedObjectRef} position={[0, 0, 0]} onDragChange={setIsDraggingArrow}/>;
+          <ResizableObject url={url} ref={refs[index]} position={[0, 0, 0]} onDragChange={setIsDraggingArrow}/>;
         </Suspense>
       ))}
     </>
