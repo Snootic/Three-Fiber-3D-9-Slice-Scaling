@@ -11,7 +11,7 @@ export function LoadedObjects({ urls }) {
     <>
       {urls.map((url, index) => (
         <Suspense key={index} fallback={null}>
-          <ResizableObject url={url} ref={refs[index]} position={[0, 0, 0]} onDragChange={setIsDraggingArrow}/>;
+          <ResizableObject url={url} ref={refs[index]} position={[0 + index * 4, 0, 0]} onDragChange={setIsDraggingArrow}/>;
         </Suspense>
       ))}
     </>
