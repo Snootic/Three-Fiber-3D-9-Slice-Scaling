@@ -27,34 +27,21 @@ export function TSSliceScaling(direction, axis, delta, mesh) {
     ];
     const vertexRegion = classifyVertexRegion(originalVertexPos, margins, bbox);
 
-    let [newX, newY, newZ] = originalVertexPos
+    const newPos = originalVertexPos.map((pos, axis) => {
+      const regionValue = vertexRegion.getComponent(axis);
+      const delta = (newSize.getComponent(axis) - baseSize.getComponent(axis)) / 2;
+      const margin = margins.getComponent(axis);
+      
+      if (regionValue === -1) return pos - delta;
+      if (regionValue === 1) return pos + delta;
+      
+      const centerWidth = newSize.getComponent(axis) - 2 * margin;
+      const baseCenterWidth = baseSize.getComponent(axis) - 2 * margin;
+      const scale = baseCenterWidth !== 0 ? centerWidth / baseCenterWidth : 1;
+      return pos * scale;
+    });
 
-    if (vertexRegion.x === -1) {
-      newX = originalVertexPos[0] - (newSize.x - baseSize.x) / 2;
-    } else if (vertexRegion.x === 1) {
-      newX = originalVertexPos[0] + (newSize.x - baseSize.x) / 2;
-    } else {
-      const centerScaleX = (newSize.x - 2 * margins.x) / (baseSize.x - 2 * margins.x);
-      newX = originalVertexPos[0] * centerScaleX;
-    }
-    
-    if (vertexRegion.y === -1) {
-      newY = originalVertexPos[1] - (newSize.y - baseSize.y) / 2;
-    } else if (vertexRegion.y === 1) {
-      newY = originalVertexPos[1] + (newSize.y - baseSize.y) / 2;
-    } else {
-      const centerScaleY = (newSize.y - 2 * margins.y) / (baseSize.y - 2 * margins.y);
-      newY = originalVertexPos[1] * centerScaleY;
-    }
-    
-    if (vertexRegion.z === -1) {
-      newZ = originalVertexPos[2] - (newSize.z - baseSize.z) / 2;
-    } else if (vertexRegion.z === 1) {
-      newZ = originalVertexPos[2] + (newSize.z - baseSize.z) / 2;
-    } else {
-      const centerScaleZ = (newSize.z - 2 * margins.z) / (baseSize.z - 2 * margins.z);
-      newZ = originalVertexPos[2] * centerScaleZ;
-    }
+    const [newX, newY, newZ] = newPos;
     
     attributesPosition.array[idx] = newX
     attributesPosition.array[idx + 1] = newY
@@ -98,17 +85,17 @@ function getGeometryBaseSize(geometry) {
   
   const bbox = geometry.boundingBox
   
-  return {
-    x: bbox.max.x - bbox.min.x,
-    y: bbox.max.y - bbox.min.y,
-    z: bbox.max.z - bbox.min.z
-  }
+  return new Vector3(
+    bbox.max.x - bbox.min.x,
+    bbox.max.y - bbox.min.y,
+    bbox.max.z - bbox.min.z
+  )
 }
 
 function calculateMargins(baseSize) {
-  return {
-    x: baseSize.x / 2,
-    y: baseSize.y / 2,
-    z: baseSize.z / 2,
-  }
+  return new Vector3(
+    baseSize.x / 2,
+    baseSize.y / 2,
+    baseSize.z / 2,
+  )
 }
